@@ -6,8 +6,10 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Eszkozok from './pages/Eszkozok'
+import Felhasznalok from './pages/Felhasznalok'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -15,6 +17,7 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/"
             element={
@@ -25,6 +28,7 @@ createRoot(document.getElementById('root')).render(
           >
             <Route index element={<Dashboard />} />
             <Route path="eszkozok" element={<Eszkozok />} />
+            <Route path="felhasznalok" element={<Felhasznalok />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

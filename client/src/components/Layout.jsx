@@ -1,9 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Wrench, LogOut } from 'lucide-react'
+import { LayoutDashboard, Wrench, Users, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Layout() {
-  const { logout } = useAuth()
+  const { logout, isAdmin } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -41,6 +41,19 @@ export default function Layout() {
             <Wrench size={18} />
             Eszközök
           </NavLink>
+          {isAdmin && (
+            <NavLink
+              to="/felhasznalok"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  isActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'
+                }`
+              }
+            >
+              <Users size={18} />
+              Felhasználók
+            </NavLink>
+          )}
         </nav>
         <div className="p-3 border-t border-gray-200">
           <button

@@ -103,7 +103,7 @@ function UjEszkozModal({ onClose, onSaved }) {
 }
 
 export default function Eszkozok() {
-  const { username } = useAuth()
+  const { username, isAdmin } = useAuth()
   const [eszkozok, setEszkozok] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -147,13 +147,15 @@ export default function Eszkozok() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Eszközök</h1>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={16} />
-          Új eszköz
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={16} />
+            Új eszköz
+          </button>
+        )}
       </div>
 
       {error && (

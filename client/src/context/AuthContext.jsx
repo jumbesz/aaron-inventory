@@ -13,7 +13,10 @@ function parseToken(token) {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('auth_token'))
 
-  const username = token ? (parseToken(token)?.sub ?? null) : null
+  const payload = token ? parseToken(token) : null
+  const username = payload?.sub ?? null
+  const szerepkor = payload?.szerepkor ?? null
+  const isAdmin = szerepkor === 'admin'
 
   const login = (t) => {
     localStorage.setItem('auth_token', t)
@@ -26,7 +29,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, isAuthenticated: !!token, username }}>
+    <AuthContext.Provider value={{ token, login, logout, isAuthenticated: !!token, username, szerepkor, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

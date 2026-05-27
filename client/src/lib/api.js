@@ -26,8 +26,11 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  login: (username, password) =>
-    request('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  login: (felhasznalonev, jelszo) =>
+    request('/auth/login', { method: 'POST', body: JSON.stringify({ felhasznalonev, jelszo }) }),
+  register: (felhasznalonev, jelszo) =>
+    request('/auth/register', { method: 'POST', body: JSON.stringify({ felhasznalonev, jelszo }) }),
+  getFelhasznalok: () => request('/felhasznalok'),
   getEszkozok: () => request('/eszkozok'),
   addEszkoz: (body) => request('/eszkozok', { method: 'POST', body: JSON.stringify(body) }),
   kiveszem: (eszkoz_id, felhasznalo_nev) =>
