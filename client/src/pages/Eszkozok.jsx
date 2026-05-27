@@ -209,12 +209,14 @@ export default function Eszkozok() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       {aktiv ? (
-                        <button
-                          onClick={() => handleVissza(e)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                        >
-                          Visszahozom
-                        </button>
+                        (isAdmin || aktiv.felhasznalo_nev === username) && (
+                          <button
+                            onClick={() => handleVissza(e)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          >
+                            Visszahozom
+                          </button>
+                        )
                       ) : (
                         <button
                           onClick={() => handleKiveszem(e)}

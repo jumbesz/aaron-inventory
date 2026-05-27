@@ -170,6 +170,7 @@ app.post('/api/kolcsonzesek', async (c) => {
 
 app.patch('/api/kolcsonzesek/:id/visszahozas', async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user')
 
   const { data: meglevo, error: fetchError } = await supabase
     .from('kolcsonzesek').select('eszkoz_id, felhasznalo_nev')
@@ -177,6 +178,10 @@ app.patch('/api/kolcsonzesek/:id/visszahozas', async (c) => {
 
   if (fetchError) return c.json({ error: fetchError.message }, 500)
   if (!meglevo) return c.json({ error: 'Kölcsönzés nem található vagy már visszahozták' }, 404)
+
+  if (user.szerepkor !== 'admin' && meglevo.felhasznalo_nev !== user.sub) {
+    return c.json({ error: 'Csak a saját kölcsönzésedet hozhatod vissza' }, 403)
+  }
 
   const { data, error } = await supabase
     .from('kolcsonzesek').update({ visszahozva_at: new Date().toISOString() })
