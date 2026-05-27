@@ -125,12 +125,6 @@ function VissszaModal({ eszkoz, onClose, onDone }) {
         <p className="font-medium text-gray-800">{eszkoz.nev}</p>
         {eszkoz.cikkszam && <p className="text-xs text-gray-500">{eszkoz.cikkszam}</p>}
       </div>
-      <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-        <LogIn size={14} className="text-gray-400 shrink-0" />
-        Visszahozza: <span className="font-medium text-gray-700">{kolcsonzes.felhasznalo_nev}</span>
-        <span className="text-gray-300">·</span>
-        <span>{formatDate(kolcsonzes.kiveve_at)} óta nála</span>
-      </div>
     </ConfirmModal>
   )
 }
