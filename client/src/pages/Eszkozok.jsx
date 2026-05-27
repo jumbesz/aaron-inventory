@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Plus, X } from 'lucide-react'
 import { api } from '../lib/api'
 
 function formatDate(iso) {
@@ -9,11 +10,103 @@ function formatDate(iso) {
   })
 }
 
+function UjEszkozModal({ onClose, onSaved }) {
+  const [form, setForm] = useState({ nev: '', cikkszam: '', kiszerelesek: '', megjegyzes: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      await api.addEszkoz(form)
+      onSaved()
+    } catch (e) {
+      setError(e.message)
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-lg w-full max-w-md mx-4">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-800">Új eszköz</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={18} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Név *</label>
+            <input
+              value={form.nev}
+              onChange={set('nev')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cikkszám</label>
+            <input
+              value={form.cikkszam}
+              onChange={set('cikkszam')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kiszerelés</label>
+            <input
+              value={form.kiszerelesek}
+              onChange={set('kiszerelesek')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Megjegyzés</label>
+            <textarea
+              value={form.megjegyzes}
+              onChange={set('megjegyzes')}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2 mt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              Mégse
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Mentés...' : 'Mentés'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function Eszkozok() {
   const [eszkozok, setEszkozok] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [tick, setTick] = useState(0)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const refresh = () => setTick((t) => t + 1)
 
@@ -50,7 +143,16 @@ export default function Eszkozok() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Eszközök</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800">Eszközök</h1>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={16} />
+          Új eszköz
+        </button>
+      </div>
 
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -83,11 +185,11 @@ export default function Eszkozok() {
                     <td className="px-5 py-3 text-gray-500">{e.cikkszam || '—'}</td>
                     <td className="px-5 py-3">
                       {aktiv ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                           Kiadott
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
                           Szabad
                         </span>
                       )}
@@ -125,6 +227,13 @@ export default function Eszkozok() {
           </table>
         )}
       </div>
+
+      {modalOpen && (
+        <UjEszkozModal
+          onClose={() => setModalOpen(false)}
+          onSaved={() => { setModalOpen(false); refresh() }}
+        />
+      )}
     </div>
   )
 }

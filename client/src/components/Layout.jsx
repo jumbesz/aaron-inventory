@@ -1,7 +1,16 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Wrench } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Wrench, LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function Layout() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
@@ -33,6 +42,15 @@ export default function Layout() {
             Eszközök
           </NavLink>
         </nav>
+        <div className="p-3 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            <LogOut size={18} />
+            Kijelentkezés
+          </button>
+        </div>
       </aside>
       <main className="flex-1 overflow-auto p-8">
         <Outlet />
