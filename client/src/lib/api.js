@@ -37,4 +37,6 @@ export const api = {
     request('/kolcsonzesek', { method: 'POST', body: JSON.stringify({ eszkoz_id, felhasznalo_nev }) }),
   visszahozom: (kolcsonzes_id) =>
     request(`/kolcsonzesek/${kolcsonzes_id}/visszahozas`, { method: 'PATCH' }),
+  getTortenet: (limit = 100, offset = 0) =>
+    request(`/tortenet?limit=${limit}&offset=${offset}`),
 }

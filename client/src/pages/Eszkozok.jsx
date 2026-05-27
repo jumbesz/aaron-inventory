@@ -83,10 +83,6 @@ function KiveszemModal({ eszkoz, username, onClose, onDone }) {
         <p className="font-medium text-gray-800">{eszkoz.nev}</p>
         {eszkoz.cikkszam && <p className="text-xs text-gray-500">{eszkoz.cikkszam}</p>}
       </div>
-      <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-        <LogOut size={14} className="text-blue-500 shrink-0" />
-        Kölcsönző: <span className="font-medium text-gray-700">{username}</span>
-      </div>
     </ConfirmModal>
   )
 }
@@ -236,15 +232,16 @@ export default function Eszkozok() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Eszközök</h1>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-semibold text-gray-800">Eszközök</h1>
         {isAdmin && (
           <button
             onClick={() => setUjModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 md:px-4 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             <Plus size={16} />
-            Új eszköz
+            <span className="hidden sm:inline">Új eszköz</span>
+            <span className="sm:hidden">Új</span>
           </button>
         )}
       </div>
@@ -253,76 +250,110 @@ export default function Eszkozok() {
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {loading ? (
-          <p className="p-6 text-sm text-gray-400">Betöltés...</p>
-        ) : eszkozok.length === 0 ? (
-          <p className="p-6 text-sm text-gray-400">Nincsenek eszközök.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-left text-gray-500 text-xs uppercase tracking-wide">
-                <th className="px-5 py-3">Eszköz</th>
-                <th className="px-5 py-3">Cikkszám</th>
-                <th className="px-5 py-3">Állapot</th>
-                <th className="px-5 py-3">Kinél / Mióta</th>
-                <th className="px-5 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {eszkozok.map((e) => {
-                const aktiv = e.kolcsonzesek?.[0]
-                const visszaJogosult = aktiv && (isAdmin || aktiv.felhasznalo_nev === username)
-                return (
-                  <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-800">{e.nev}</td>
-                    <td className="px-5 py-3 text-gray-500">{e.cikkszam || '—'}</td>
-                    <td className="px-5 py-3">
-                      {aktiv ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                          Kiadott
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                          Szabad
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-gray-500">
-                      {aktiv ? (
-                        <span>
-                          <span className="font-medium text-gray-700">{aktiv.felhasznalo_nev}</span>
-                          <span className="text-gray-400"> · </span>
-                          {formatDate(aktiv.kiveve_at)}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      {aktiv ? (
-                        visszaJogosult && (
-                          <button
-                            onClick={() => setVissszaEszkoz(e)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                          >
-                            Visszahozom
+      {loading ? (
+        <p className="p-6 text-sm text-gray-400">Betöltés...</p>
+      ) : eszkozok.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <p className="text-sm text-gray-400">Nincsenek eszközök.</p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-gray-500 text-xs uppercase tracking-wide">
+                  <th className="px-5 py-3">Eszköz</th>
+                  <th className="px-5 py-3">Cikkszám</th>
+                  <th className="px-5 py-3">Állapot</th>
+                  <th className="px-5 py-3">Kinél / Mióta</th>
+                  <th className="px-5 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {eszkozok.map((e) => {
+                  const aktiv = e.kolcsonzesek?.[0]
+                  const visszaJogosult = aktiv && (isAdmin || aktiv.felhasznalo_nev === username)
+                  return (
+                    <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 font-medium text-gray-800">{e.nev}</td>
+                      <td className="px-5 py-3 text-gray-500">{e.cikkszam || '—'}</td>
+                      <td className="px-5 py-3">
+                        {aktiv ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">Kiadott</span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">Szabad</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">
+                        {aktiv ? (
+                          <span><span className="font-medium text-gray-700">{aktiv.felhasznalo_nev}</span><span className="text-gray-400"> · </span>{formatDate(aktiv.kiveve_at)}</span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        {aktiv ? (
+                          visszaJogosult && (
+                            <button onClick={() => setVissszaEszkoz(e)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                              Visszahozom
+                            </button>
+                          )
+                        ) : (
+                          <button onClick={() => setKiveszemEszkoz(e)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                            Kiveszem
                           </button>
-                        )
-                      ) : (
-                        <button
-                          onClick={() => setKiveszemEszkoz(e)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                        >
-                          Kiveszem
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden flex flex-col gap-2">
+            {eszkozok.map((e) => {
+              const aktiv = e.kolcsonzesek?.[0]
+              const visszaJogosult = aktiv && (isAdmin || aktiv.felhasznalo_nev === username)
+              return (
+                <div key={e.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <p className="font-medium text-gray-800 text-sm">{e.nev}</p>
+                      {e.cikkszam && <p className="text-xs text-gray-400 mt-0.5">{e.cikkszam}</p>}
+                    </div>
+                    {aktiv ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 shrink-0">Kiadott</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 shrink-0">Szabad</span>
+                    )}
+                  </div>
+                  {aktiv && (
+                    <p className="text-xs text-gray-500 mb-3">
+                      <span className="font-medium text-gray-700">{aktiv.felhasznalo_nev}</span>
+                      <span className="text-gray-400"> · </span>
+                      {formatDate(aktiv.kiveve_at)}
+                    </p>
+                  )}
+                  <div className="flex justify-end">
+                    {aktiv ? (
+                      visszaJogosult && (
+                        <button onClick={() => setVissszaEszkoz(e)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                          Visszahozom
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+                      )
+                    ) : (
+                      <button onClick={() => setKiveszemEszkoz(e)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                        Kiveszem
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       {ujModal && (
         <UjEszkozModal onClose={() => setUjModal(false)} onSaved={() => { setUjModal(false); refresh() }} />

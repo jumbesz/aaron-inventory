@@ -6,7 +6,11 @@ import { createClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
+// Service role key bypasses RLS — soha ne kerüljön kliensre
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+)
 const JWT_SECRET = process.env.JWT_SECRET || 'aaron-inventory-dev-secret'
 
 const app = new Hono()
@@ -101,6 +105,22 @@ app.get('/api/felhasznalok', async (c) => {
 
   if (error) return c.json({ error: error.message }, 500)
   return c.json(data)
+})
+
+// ── Történet ─────────────────────────────────────────────────────────────────
+
+app.get('/api/tortenet', async (c) => {
+  const limit = Math.min(parseInt(c.req.query('limit') || '100'), 500)
+  const offset = parseInt(c.req.query('offset') || '0')
+
+  const { data, error, count } = await supabase
+    .from('audit_log')
+    .select('*, eszkozok(nev, cikkszam)', { count: 'exact' })
+    .order('tortent_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) return c.json({ error: error.message }, 500)
+  return c.json({ data, count })
 })
 
 // ── Eszközök ─────────────────────────────────────────────────────────────────

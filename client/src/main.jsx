@@ -10,6 +10,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Eszkozok from './pages/Eszkozok'
 import Felhasznalok from './pages/Felhasznalok'
+import Tortenet from './pages/Tortenet'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')).render(
           >
             <Route index element={<Dashboard />} />
             <Route path="eszkozok" element={<Eszkozok />} />
+            <Route path="tortenet" element={<Tortenet />} />
             <Route path="felhasznalok" element={<Felhasznalok />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
