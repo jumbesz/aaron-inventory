@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -102,6 +103,7 @@ function UjEszkozModal({ onClose, onSaved }) {
 }
 
 export default function Eszkozok() {
+  const { username } = useAuth()
   const [eszkozok, setEszkozok] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -118,10 +120,10 @@ export default function Eszkozok() {
   }, [tick])
 
   const handleKiveszem = async (eszkoz) => {
-    const nev = window.prompt(`Kinek veszed ki: ${eszkoz.nev}?`)
-    if (!nev?.trim()) return
+    const ok = window.confirm(`Kiveszed: ${eszkoz.nev}? (${username} nevére rögzítve)`)
+    if (!ok) return
     try {
-      await api.kiveszem(eszkoz.id, nev.trim())
+      await api.kiveszem(eszkoz.id, username)
       refresh()
     } catch (e) {
       alert(e.message)
