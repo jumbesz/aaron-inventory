@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, LogIn, LogOut } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -10,6 +10,132 @@ function formatDate(iso) {
     hour: '2-digit', minute: '2-digit',
   })
 }
+
+// ── Megerősítő modal ──────────────────────────────────────────────────────────
+
+function ConfirmModal({ title, children, confirmLabel, confirmClass, onConfirm, onClose, loading, error }) {
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-lg w-full max-w-sm mx-4">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-800">{title}</h2>
+          <button onClick={onClose} disabled={loading} className="text-gray-400 hover:text-gray-600 disabled:opacity-40">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          {children}
+          {error && (
+            <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 px-6 pb-5">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors"
+          >
+            Mégse
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-colors ${confirmClass}`}
+          >
+            {loading ? 'Folyamatban...' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Kiveszem modal ────────────────────────────────────────────────────────────
+
+function KiveszemModal({ eszkoz, username, onClose, onDone }) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleConfirm = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      await api.kiveszem(eszkoz.id, username)
+      onDone()
+    } catch (e) {
+      setError(e.message)
+      setLoading(false)
+    }
+  }
+
+  return (
+    <ConfirmModal
+      title="Eszköz kivétele"
+      confirmLabel="Kiveszem"
+      confirmClass="bg-blue-600 hover:bg-blue-700"
+      onConfirm={handleConfirm}
+      onClose={onClose}
+      loading={loading}
+      error={error}
+    >
+      <p className="text-sm text-gray-600 mb-4">Az alábbi eszköz a te nevedre lesz rögzítve:</p>
+      <div className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-1">
+        <p className="font-medium text-gray-800">{eszkoz.nev}</p>
+        {eszkoz.cikkszam && <p className="text-xs text-gray-500">{eszkoz.cikkszam}</p>}
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+        <LogOut size={14} className="text-blue-500 shrink-0" />
+        Kölcsönző: <span className="font-medium text-gray-700">{username}</span>
+      </div>
+    </ConfirmModal>
+  )
+}
+
+// ── Visszahozom modal ─────────────────────────────────────────────────────────
+
+function VissszaModal({ eszkoz, onClose, onDone }) {
+  const kolcsonzes = eszkoz.kolcsonzesek[0]
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleConfirm = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      await api.visszahozom(kolcsonzes.id)
+      onDone()
+    } catch (e) {
+      setError(e.message)
+      setLoading(false)
+    }
+  }
+
+  return (
+    <ConfirmModal
+      title="Eszköz visszahozása"
+      confirmLabel="Visszahozom"
+      confirmClass="bg-gray-700 hover:bg-gray-800"
+      onConfirm={handleConfirm}
+      onClose={onClose}
+      loading={loading}
+      error={error}
+    >
+      <p className="text-sm text-gray-600 mb-4">Visszahozottként rögzíted az alábbi eszközt:</p>
+      <div className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-1">
+        <p className="font-medium text-gray-800">{eszkoz.nev}</p>
+        {eszkoz.cikkszam && <p className="text-xs text-gray-500">{eszkoz.cikkszam}</p>}
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+        <LogIn size={14} className="text-gray-400 shrink-0" />
+        Visszahozza: <span className="font-medium text-gray-700">{kolcsonzes.felhasznalo_nev}</span>
+        <span className="text-gray-300">·</span>
+        <span>{formatDate(kolcsonzes.kiveve_at)} óta nála</span>
+      </div>
+    </ConfirmModal>
+  )
+}
+
+// ── Új eszköz modal ───────────────────────────────────────────────────────────
 
 function UjEszkozModal({ onClose, onSaved }) {
   const [form, setForm] = useState({ nev: '', cikkszam: '', kiszerelesek: '', megjegyzes: '' })
@@ -76,23 +202,13 @@ function UjEszkozModal({ onClose, onSaved }) {
             />
           </div>
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </p>
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
           )}
           <div className="flex justify-end gap-2 mt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
               Mégse
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
+            <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
               {loading ? 'Mentés...' : 'Mentés'}
             </button>
           </div>
@@ -102,13 +218,18 @@ function UjEszkozModal({ onClose, onSaved }) {
   )
 }
 
+// ── Főkomponens ───────────────────────────────────────────────────────────────
+
 export default function Eszkozok() {
   const { username, isAdmin } = useAuth()
   const [eszkozok, setEszkozok] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [tick, setTick] = useState(0)
-  const [modalOpen, setModalOpen] = useState(false)
+
+  const [ujModal, setUjModal] = useState(false)
+  const [kiveszemEszkoz, setKiveszemEszkoz] = useState(null)
+  const [visszaEszkoz, setVissszaEszkoz] = useState(null)
 
   const refresh = () => setTick((t) => t + 1)
 
@@ -119,37 +240,13 @@ export default function Eszkozok() {
       .finally(() => setLoading(false))
   }, [tick])
 
-  const handleKiveszem = async (eszkoz) => {
-    const ok = window.confirm(`Kiveszed: ${eszkoz.nev}? (${username} nevére rögzítve)`)
-    if (!ok) return
-    try {
-      await api.kiveszem(eszkoz.id, username)
-      refresh()
-    } catch (e) {
-      alert(e.message)
-    }
-  }
-
-  const handleVissza = async (eszkoz) => {
-    const kolcsonzes = eszkoz.kolcsonzesek?.[0]
-    if (!kolcsonzes) return
-    const ok = window.confirm(`Visszahozta ${kolcsonzes.felhasznalo_nev}: ${eszkoz.nev}?`)
-    if (!ok) return
-    try {
-      await api.visszahozom(kolcsonzes.id)
-      refresh()
-    } catch (e) {
-      alert(e.message)
-    }
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Eszközök</h1>
         {isAdmin && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => setUjModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             <Plus size={16} />
@@ -159,9 +256,7 @@ export default function Eszkozok() {
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
-        </div>
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -183,6 +278,7 @@ export default function Eszkozok() {
             <tbody>
               {eszkozok.map((e) => {
                 const aktiv = e.kolcsonzesek?.[0]
+                const visszaJogosult = aktiv && (isAdmin || aktiv.felhasznalo_nev === username)
                 return (
                   <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3 font-medium text-gray-800">{e.nev}</td>
@@ -209,9 +305,9 @@ export default function Eszkozok() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       {aktiv ? (
-                        (isAdmin || aktiv.felhasznalo_nev === username) && (
+                        visszaJogosult && (
                           <button
-                            onClick={() => handleVissza(e)}
+                            onClick={() => setVissszaEszkoz(e)}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                           >
                             Visszahozom
@@ -219,7 +315,7 @@ export default function Eszkozok() {
                         )
                       ) : (
                         <button
-                          onClick={() => handleKiveszem(e)}
+                          onClick={() => setKiveszemEszkoz(e)}
                           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                         >
                           Kiveszem
@@ -234,10 +330,22 @@ export default function Eszkozok() {
         )}
       </div>
 
-      {modalOpen && (
-        <UjEszkozModal
-          onClose={() => setModalOpen(false)}
-          onSaved={() => { setModalOpen(false); refresh() }}
+      {ujModal && (
+        <UjEszkozModal onClose={() => setUjModal(false)} onSaved={() => { setUjModal(false); refresh() }} />
+      )}
+      {kiveszemEszkoz && (
+        <KiveszemModal
+          eszkoz={kiveszemEszkoz}
+          username={username}
+          onClose={() => setKiveszemEszkoz(null)}
+          onDone={() => { setKiveszemEszkoz(null); refresh() }}
+        />
+      )}
+      {visszaEszkoz && (
+        <VissszaModal
+          eszkoz={visszaEszkoz}
+          onClose={() => setVissszaEszkoz(null)}
+          onDone={() => { setVissszaEszkoz(null); refresh() }}
         />
       )}
     </div>
