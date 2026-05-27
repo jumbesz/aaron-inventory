@@ -16,12 +16,16 @@ app.get('/', (c) => c.json({ status: 'ok', message: 'Aaron Inventory API' }))
 app.get('/api/eszkozok', async (c) => {
   const { data: eszkozok, error } = await supabase
     .from('eszkozok')
-    .select('*, kolcsonzesek(id, felhasznalo_nev, kiveve_at)')
-    .is('kolcsonzesek.visszahozva_at', null)
+    .select('*, kolcsonzesek(id, felhasznalo_nev, kiveve_at, visszahozva_at)')
     .order('letrehozva_at', { ascending: true })
 
   if (error) return c.json({ error: error.message }, 500)
-  return c.json(eszkozok)
+
+  const result = eszkozok.map((e) => ({
+    ...e,
+    kolcsonzesek: e.kolcsonzesek.filter((k) => k.visszahozva_at === null),
+  }))
+  return c.json(result)
 })
 
 // POST /api/eszkozok — új eszköz
