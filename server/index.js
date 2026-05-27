@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { sign, verify } from 'hono/jwt'
 import { serve } from '@hono/node-server'
 import { createClient } from '@supabase/supabase-js'
+import jwt from 'jsonwebtoken'
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
 
@@ -13,7 +13,7 @@ const ADMIN_PASS = 'admin'
 
 const app = new Hono()
 
-app.use('/api/*', cors())
+app.use('*', cors())
 
 app.get('/', (c) => c.json({ status: 'ok', message: 'Aaron Inventory API' }))
 
@@ -23,10 +23,7 @@ app.post('/api/auth/login', async (c) => {
   if (username !== ADMIN_USER || password !== ADMIN_PASS) {
     return c.json({ error: 'Hibás felhasználónév vagy jelszó' }, 401)
   }
-  const token = await sign(
-    { sub: username, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 8 },
-    JWT_SECRET
-  )
+  const token = jwt.sign({ sub: username }, JWT_SECRET, { expiresIn: '8h' })
   return c.json({ token })
 })
 
@@ -36,7 +33,7 @@ app.use('/api/*', async (c, next) => {
   const auth = c.req.header('Authorization')
   if (!auth?.startsWith('Bearer ')) return c.json({ error: 'Unauthorized' }, 401)
   try {
-    await verify(auth.slice(7), JWT_SECRET)
+    jwt.verify(auth.slice(7), JWT_SECRET)
   } catch {
     return c.json({ error: 'Unauthorized' }, 401)
   }
